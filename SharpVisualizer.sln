@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpVisualizer", "SharpVisualizer\SharpVisualizer.csproj", "{47B2A4D2-CB69-4830-B1B0-3ED7FEF3028E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{47B2A4D2-CB69-4830-B1B0-3ED7FEF3028E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47B2A4D2-CB69-4830-B1B0-3ED7FEF3028E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47B2A4D2-CB69-4830-B1B0-3ED7FEF3028E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47B2A4D2-CB69-4830-B1B0-3ED7FEF3028E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
