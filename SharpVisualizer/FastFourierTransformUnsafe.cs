@@ -1,76 +1,98 @@
 ﻿using System;
 using NAudio.Dsp;
 
-namespace SharpVisualizer
+namespace Raygui
 {
     public static unsafe class FastFourierTransformUnsafe
     {
+        /// <summary>
+        ///     This computes an in-place complex-to-complex FFT
+        ///     x and y are the real and imaginary arrays of 2^m points.
+        ///     <para />
+        ///     Copied from
+        ///     <a href="https://github.com/naudio/NAudio/blob/fb35ce8367f30b8bc5ea84e7d2529e172cf4c381/NAudio.Core/Dsp/FastFourierTransform.csNAudio.Core/Dsp/FastFourierTransform.cs#L10-L89">
+        ///       github.com/naudio/NAudio/NAudio.Core/Dsp/FastFourierTransform.cs
+        ///     </a>
+        ///     <para />
+        ///     with the change of using <c>Complex*</c> for data
+        /// </summary>
         public static void FFT(bool forward, int m, Complex* data)
         {
-            var num1 = 1;
-            for (var index = 0; index < m; ++index)
-                num1 *= 2;
-            var num2 = num1 >> 1;
-            var index1 = 0;
-            for (var index2 = 0; index2 < num1 - 1; ++index2)
+            int n, i, i1, j, k, i2, l, l1, l2;
+            float c1, c2, tx, ty, t1, t2, u1, u2, z;
+
+            // Calculate the number of points
+            n = 1;
+            for (i = 0; i < m; i++)
+                n *= 2;
+
+            // Do the bit reversal
+            i2 = n >> 1;
+            j = 0;
+            for (i = 0; i < n - 1; i++)
             {
-                if (index2 < index1)
+                if (i < j)
                 {
-                    var x = data[index2].X;
-                    var y = data[index2].Y;
-                    data[index2].X = data[index1].X;
-                    data[index2].Y = data[index1].Y;
-                    data[index1].X = x;
-                    data[index1].Y = y;
+                    tx = data[i].X;
+                    ty = data[i].Y;
+                    data[i].X = data[j].X;
+                    data[i].Y = data[j].Y;
+                    data[j].X = tx;
+                    data[j].Y = ty;
                 }
 
-                int num3;
-                for (num3 = num2; num3 <= index1; num3 >>= 1)
-                    index1 -= num3;
-                index1 += num3;
+                k = i2;
+
+                while (k <= j)
+                {
+                    j -= k;
+                    k >>= 1;
+                }
+
+                j += k;
             }
 
-            var num4 = -1f;
-            var num5 = 0.0f;
-            var num6 = 1;
-            for (var index2 = 0; index2 < m; ++index2)
+            // Compute the FFT 
+            c1 = -1.0f;
+            c2 = 0.0f;
+            l2 = 1;
+            for (l = 0; l < m; l++)
             {
-                var num3 = num6;
-                num6 <<= 1;
-                var num7 = 1f;
-                var num8 = 0.0f;
-                for (var index3 = 0; index3 < num3; ++index3)
+                l1 = l2;
+                l2 <<= 1;
+                u1 = 1.0f;
+                u2 = 0.0f;
+                for (j = 0; j < l1; j++)
                 {
-                    for (var index4 = index3; index4 < num1; index4 += num6)
+                    for (i = j; i < n; i += l2)
                     {
-                        var index5 = index4 + num3;
-                        var num9 = (float) (num7 * (double) data[index5].X -
-                                            num8 * (double) data[index5].Y);
-                        var num10 = (float) (num7 * (double) data[index5].Y +
-                                             num8 * (double) data[index5].X);
-                        data[index5].X = data[index4].X - num9;
-                        data[index5].Y = data[index4].Y - num10;
-                        data[index4].X += num9;
-                        data[index4].Y += num10;
+                        i1 = i + l1;
+                        t1 = u1 * data[i1].X - u2 * data[i1].Y;
+                        t2 = u1 * data[i1].Y + u2 * data[i1].X;
+                        data[i1].X = data[i].X - t1;
+                        data[i1].Y = data[i].Y - t2;
+                        data[i].X += t1;
+                        data[i].Y += t2;
                     }
 
-                    var num11 = (float) (num7 * (double) num4 - num8 * (double) num5);
-                    num8 = (float) (num7 * (double) num5 + num8 * (double) num4);
-                    num7 = num11;
+                    z = u1 * c1 - u2 * c2;
+                    u2 = u1 * c2 + u2 * c1;
+                    u1 = z;
                 }
 
-                num5 = (float) Math.Sqrt((1.0 - num4) / 2.0);
+                c2 = (float) Math.Sqrt((1.0f - c1) / 2.0f);
                 if (forward)
-                    num5 = -num5;
-                num4 = (float) Math.Sqrt((1.0 + num4) / 2.0);
+                    c2 = -c2;
+                c1 = (float) Math.Sqrt((1.0f + c1) / 2.0f);
             }
 
-            if (!forward)
-                return;
-            for (var index2 = 0; index2 < num1; ++index2)
+            // Scaling for forward transform 
+            if (!forward) return;
+            
+            for (i = 0; i < n; i++)
             {
-                data[index2].X /= num1;
-                data[index2].Y /= num1;
+                data[i].X /= n;
+                data[i].Y /= n;
             }
         }
     }
